@@ -47,7 +47,6 @@ const replaceTemplate = (template, product) => {
     output = output.replace(/{%NOT_ORGANIC%}/g, "not-organic");
   return output;
 };
-
 const templateOverview = fs.readFileSync(
   `${__dirname}/templates/template-overview.html`,
   "utf-8"
@@ -64,7 +63,9 @@ const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8");
 const dataObj = JSON.parse(data);
 
 const server = http.createServer((req, res) => {
-  const pathName = req.url;
+  // const { query, pathname } = url.parse(req.url, true);
+  const myURL = new URL(`http://127.0.0.1:8000${req.url}`);
+  const { searchParams, pathname: pathName } = myURL;
 
   // Overview page
   if (pathName === "/" || pathName === "/overview") {
@@ -74,13 +75,16 @@ const server = http.createServer((req, res) => {
       .map((el) => replaceTemplate(templateCard, el))
       .join("");
     const output = templateOverview.replace("{%PRODUCT_CARDS%}", cardsHtml);
-    console.log(cardsHtml);
-
     res.end(output);
 
     // Product page
   } else if (pathName === "/product") {
-    res.end("This is the PRODUCT!");
+    // console.log(query);
+    // res.end("This is the PRODUCT!");
+    res.writeHead(200, { "Content-type": "text/html" });
+    const product = dataObj.find((el) => el.id == searchParams.get("id"));
+    output = replaceTemplate(templateProduct, product);
+    res.end(output);
 
     // API
   } else if (pathName === "/api") {
