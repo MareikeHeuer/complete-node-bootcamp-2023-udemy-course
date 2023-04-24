@@ -12,25 +12,27 @@ const readFilePromise = (file) => {
 
 const writeFilePromise = (file, data) => {
   return new Promise((resolve, reject) => {
-    fs.writeFile(file, (data) => {
+    fs.writeFile(file, data, (err) => {
       if (err) reject("Unable to find file");
       resolve("Successfully resovled");
     });
   });
 };
 
-readFilePromise(`${__dirname}/dog.txt`)
-  .then((data) => {
+const getDogPic = async () => {
+  try {
+    const data = await readFilePromise(`${__dirname}/dog.txt`);
     console.log(`Breed: ${data}`);
-    return superagent.get(`https://dog.ceo/api/breed/${data}/images/random`);
-  })
-  .then((res) => {
+
+    const res = await superagent.get(
+      `https://dog.ceo/api/breed/${data}/images/random`
+    );
     console.log(res.body.message);
-    return writeFilePromise("dog-img.text", res.body.message);
-  })
-  .then(() => {
+
+    await writeFilePromise("dog-img.text", res.body.message);
     console.log("Random dog image saved to file");
-  })
-  .catch((err) => {
+  } catch (err) {
     console.log(err);
-  });
+  }
+};
+getDogPic();
